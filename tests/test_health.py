@@ -1,13 +1,9 @@
-"""Тесты для проверки healthcheck"""
+"""Тесты проверки состояния сервиса"""
 
 from fastapi.testclient import TestClient
 
-from app.main import app
 
-client = TestClient(app)
-
-
-def test_health() -> None:
+def test_health(client: TestClient) -> None:
     """Проверяет успешный ответ GET /api/health"""
     response = client.get("/api/health")
     assert response.status_code == 200

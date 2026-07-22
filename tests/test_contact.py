@@ -2,10 +2,6 @@
 
 from fastapi.testclient import TestClient
 
-from app.main import app
-
-client = TestClient(app)
-
 VALID_PAYLOAD = {
     "name": "  Иван Иванов  ",
     "phone": "+7 (999) 123-45-67",
@@ -14,7 +10,7 @@ VALID_PAYLOAD = {
 }
 
 
-def test_contact_success() -> None:
+def test_contact_success(client: TestClient) -> None:
     """Успешный POST /api/contact возвращает 201 и санитизированные поля"""
     response = client.post("/api/contact", json=VALID_PAYLOAD)
     assert response.status_code == 201
@@ -27,7 +23,7 @@ def test_contact_success() -> None:
     assert "message" in body
 
 
-def test_contact_validation_missing_fields() -> None:
+def test_contact_validation_missing_fields(client: TestClient) -> None:
     """Отсутствие обязательных полей даёт 422 validation_error"""
     response = client.post("/api/contact", json={"name": "Иван"})
     assert response.status_code == 422
@@ -35,21 +31,21 @@ def test_contact_validation_missing_fields() -> None:
     assert body["code"] == "validation_error"
 
 
-def test_contact_invalid_email() -> None:
+def test_contact_invalid_email(client: TestClient) -> None:
     """Некорректный email даёт 422"""
     payload = {**VALID_PAYLOAD, "email": "not-an-email"}
     response = client.post("/api/contact", json=payload)
     assert response.status_code == 422
 
 
-def test_contact_invalid_phone() -> None:
+def test_contact_invalid_phone(client: TestClient) -> None:
     """Телефон без достаточного числа цифр даёт 422"""
     payload = {**VALID_PAYLOAD, "phone": "123"}
     response = client.post("/api/contact", json=payload)
     assert response.status_code == 422
 
 
-def test_contact_strips_html_from_comment() -> None:
+def test_contact_strips_html_from_comment(client: TestClient) -> None:
     """HTML-теги в комментарии удаляются при санитизации"""
     payload = {**VALID_PAYLOAD, "comment": "<script>alert(1)</script>Привет"}
     response = client.post("/api/contact", json=payload)

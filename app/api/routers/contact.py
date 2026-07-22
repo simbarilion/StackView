@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.dependencies import get_contact_service
+from app.api.dependencies import enforce_contact_rate_limit, get_contact_service
 from app.schemas.contact import ContactRequest, ContactResponse
 from app.services.contact import ContactService
 
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/contact", tags=["contact"])
     response_model=ContactResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Отправить обращение",
+    dependencies=[Depends(enforce_contact_rate_limit)],
 )
 async def create_contact(
     payload: ContactRequest,
