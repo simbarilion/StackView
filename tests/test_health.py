@@ -1,3 +1,5 @@
+"""Тесты для проверки healthcheck"""
+
 from fastapi.testclient import TestClient
 
 from app.main import app
