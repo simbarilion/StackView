@@ -1,6 +1,7 @@
 """Хелперы асинхронного движка и сессий БД"""
 
 from collections.abc import AsyncGenerator
+from typing import cast
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -35,9 +36,10 @@ def init_db(settings: Settings | None = None) -> None:
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Предоставляет асинхронную сессию БД для зависимостей FastAPI"""
+    session_factory = cast(async_sessionmaker[AsyncSession], _session_factory)
     if _session_factory is None:
         raise RuntimeError("Database is not configured.")
-    async with _session_factory() as session:
+    async with session_factory() as session:
         yield session
 
 
