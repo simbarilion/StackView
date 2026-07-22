@@ -49,6 +49,15 @@ tmp/
 temp/
 
 # ================================
+# Agent memory bank (local context)
+# ================================
+.memory-bank/
+
+# Runtime data (rate limit, file metrics)
+data/*
+!data/.gitkeep
+
+# ================================
 # Test files
 # ================================
 /test_main.http
