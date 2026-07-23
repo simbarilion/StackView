@@ -42,8 +42,9 @@ def test_ai_client_uses_custom_base_url(configured_ai_settings) -> None:
 
 def test_ai_client_default_without_base_url(configured_ai_settings) -> None:
     """Без OPENAI_BASE_URL клиент создаётся только с api_key"""
+    settings = configured_ai_settings.model_copy(update={"openai_base_url": None})
     with patch("app.services.ai.AsyncOpenAI") as mock_client:
-        AIService(configured_ai_settings)
+        AIService(settings)
     mock_client.assert_called_once_with(api_key="sk-test-key")
 
 
