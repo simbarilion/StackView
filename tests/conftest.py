@@ -209,7 +209,7 @@ def mock_contact_repository() -> AsyncMock:
 
 @pytest.fixture
 def client(tmp_path: Path, mock_contact_repository: AsyncMock) -> Iterator[TestClient]:
-    """TestClient с изолированным rate limit, моком AI и репозитория"""
+    """TestClient с изолированным rate limit, моком AI/email и репозитория"""
     storage = tmp_path / "rate_limit.json"
     rate_limit = RateLimitService(
         repository=RateLimitRepository(storage),
@@ -218,9 +218,12 @@ def client(tmp_path: Path, mock_contact_repository: AsyncMock) -> Iterator[TestC
     )
     ai = AsyncMock()
     ai.enrich = AsyncMock(return_value=AIEnrichment(ai_available=False))
+    email = AsyncMock()
+    email.send_contact_emails = AsyncMock(return_value=False)
 
     app.dependency_overrides[get_rate_limit_service] = lambda: rate_limit
     app.dependency_overrides[get_ai_service] = lambda: ai
+    app.dependency_overrides[get_email_service] = lambda: email
     test_client = TestClient(app)
     yield test_client
     app.dependency_overrides.pop(get_rate_limit_service, None)

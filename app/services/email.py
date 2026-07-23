@@ -154,7 +154,7 @@ class EmailService:
         smtp = aiosmtplib.SMTP(
             hostname=self._settings.smtp_host,
             port=self._settings.smtp_port,
-            use_tls=False,
+            use_tls=self._settings.smtp_use_ssl,
             start_tls=self._settings.smtp_use_tls,
         )
         try:

@@ -20,7 +20,7 @@ router = APIRouter(tags=["metrics"])
     ),
     responses={
         200: {"description": "Агрегаты из PostgreSQL"},
-        502: {"description": "БД недоступна или не настроена", "model": ErrorResponse},
+        502: {"description": "БД недоступна", "model": ErrorResponse},
     },
 )
 async def get_metrics(

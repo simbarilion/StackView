@@ -55,7 +55,8 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_username: str | None = None
     smtp_password: str | None = None
-    smtp_use_tls: bool = True
+    smtp_use_tls: bool = False
+    smtp_use_ssl: bool = True
     mail_from: str | None = None
     mail_to_owner: str | None = None
 
