@@ -39,7 +39,15 @@ class AIService:
         self._settings = settings
         self._client: AsyncOpenAI | None = None
         if self.is_configured:
-            self._client = AsyncOpenAI(api_key=settings.openai_api_key)
+            client_kwargs: dict[str, Any] = {"api_key": settings.openai_api_key}
+            if settings.openai_base_url:
+                client_kwargs["base_url"] = settings.openai_base_url
+            self._client = AsyncOpenAI(**client_kwargs)
+            logger.info(
+                "AI client ready: model=%s base_url=%s",
+                settings.openai_model,
+                settings.openai_base_url,
+            )
 
     @property
     def is_configured(self) -> bool:

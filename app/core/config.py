@@ -60,9 +60,10 @@ class Settings(BaseSettings):
     mail_from: str | None = None
     mail_to_owner: str | None = None
 
-    # AI
+    # AI (OpenAI-compatible: OpenAI, Groq, OpenRouter, …)
     openai_api_key: str | None = None
-    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str | None = None
+    openai_model: str = "llama-3.3-70b-versatile"
     ai_timeout_seconds: float = 15.0
     ai_enabled: bool = True
 
@@ -87,6 +88,14 @@ class Settings(BaseSettings):
             if raw.startswith("["):
                 return json.loads(raw)
             return [item.strip() for item in raw.split(",") if item.strip()]
+        return value
+
+    @field_validator("openai_base_url", mode="before")
+    @classmethod
+    def empty_base_url_as_none(cls, value: object) -> object:
+        """Пустую строку OPENAI_BASE_URL трактует как None"""
+        if isinstance(value, str) and not value.strip():
+            return None
         return value
 
 

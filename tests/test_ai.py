@@ -27,6 +27,26 @@ async def test_enrich_skipped_when_ai_not_configured(disabled_ai_settings) -> No
     assert result.suggested_reply is None
 
 
+def test_ai_client_uses_custom_base_url(configured_ai_settings) -> None:
+    """OPENAI_BASE_URL пробрасывается в AsyncOpenAI"""
+    settings = configured_ai_settings.model_copy(
+        update={"openai_base_url": "https://api.groq.com/openai/v1"},
+    )
+    with patch("app.services.ai.AsyncOpenAI") as mock_client:
+        AIService(settings)
+    mock_client.assert_called_once_with(
+        api_key="sk-test-key",
+        base_url="https://api.groq.com/openai/v1",
+    )
+
+
+def test_ai_client_default_without_base_url(configured_ai_settings) -> None:
+    """Без OPENAI_BASE_URL клиент создаётся только с api_key"""
+    with patch("app.services.ai.AsyncOpenAI") as mock_client:
+        AIService(configured_ai_settings)
+    mock_client.assert_called_once_with(api_key="sk-test-key")
+
+
 @pytest.mark.asyncio
 async def test_classify_request_success(configured_ai_service: AIService) -> None:
     """classify_request парсит JSON от OpenAI в RequestClassification"""
