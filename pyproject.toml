@@ -40,7 +40,10 @@ test = [
 ]
 
 [tool.poetry]
-package-mode = false
+packages = [{ include = "app" }]
+
+[project.scripts]
+seed = "app.scripts.seed:main"
 
 [tool.ruff]
 line-length = 119
@@ -105,9 +108,6 @@ exclude = [
 [[tool.mypy.overrides]]
 module = ["tests.*",]
 ignore_errors = true
-
-[tool.poetry.scripts]
-seed = "app.scripts.seed:main"
 
 [tool.coverage.run]
 source = ["app"]

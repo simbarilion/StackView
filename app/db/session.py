@@ -43,10 +43,11 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-# def is_db_configured() -> bool:
-#     """Проверяет, инициализирована ли фабрика сессий БД"""
-#     return _session_factory is not None
-
-
 def get_engine():
+    """Возвращает текущий async engine или None"""
     return _engine
+
+
+def get_session_factory() -> async_sessionmaker[AsyncSession] | None:
+    """Возвращает фабрику сессий после init_db или None"""
+    return _session_factory

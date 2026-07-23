@@ -3,7 +3,7 @@
 import re
 from html import unescape
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.schemas.ai import AIAnalysisResult
 
@@ -28,10 +28,44 @@ def _normalize_phone(value: str) -> str:
 class ContactRequest(BaseModel):
     """Входящие данные формы обратной связи"""
 
-    name: str = Field(..., min_length=2, max_length=100, examples=["Иван Иванов"])
-    phone: str = Field(..., min_length=5, max_length=32, examples=["+79991234567"])
-    email: EmailStr = Field(..., examples=["ivan@example.com"])
-    comment: str = Field(..., min_length=1, max_length=2000, examples=["Хочу обсудить проект"])
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "name": "Иван Иванов",
+                    "phone": "+79991234567",
+                    "email": "ivan@example.com",
+                    "comment": "Хочу обсудить проект по FastAPI и интеграции с CRM.",
+                }
+            ]
+        }
+    )
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=100,
+        description="Имя отправителя (HTML удаляется)",
+        examples=["Иван Иванов"],
+    )
+    phone: str = Field(
+        ...,
+        min_length=5,
+        max_length=32,
+        description="Телефон: 10–15 цифр, допускается ведущий «+»",
+        examples=["+79991234567"],
+    )
+    email: EmailStr = Field(
+        ...,
+        description="Email для ответа и копии письма",
+        examples=["ivan@example.com"],
+    )
+    comment: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="Текст обращения (HTML удаляется)",
+        examples=["Хочу обсудить проект"],
+    )
 
     @field_validator("name", "comment", mode="before")
     @classmethod
@@ -62,12 +96,35 @@ class ContactRequest(BaseModel):
 class ContactResponse(BaseModel):
     """Ответ на успешную отправку формы"""
 
-    status: str = Field(..., examples=["accepted"])
-    message: str
-    name: str
-    phone: str
-    email: str
-    comment: str
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "status": "accepted",
+                    "message": "Обращение принято",
+                    "name": "Иван Иванов",
+                    "phone": "+79991234567",
+                    "email": "ivan@example.com",
+                    "comment": "Хочу обсудить проект",
+                    "email_sent": True,
+                    "ai_available": True,
+                    "ai_analysis": {
+                        "category": "collaboration",
+                        "category_label": "Сотрудничество",
+                        "sentiment": "positive",
+                        "sentiment_score": 0.75,
+                    },
+                    "suggested_reply": "Спасибо за обращение! Предлагаю созвониться на этой неделе.",
+                }
+            ]
+        }
+    )
+    status: str = Field(..., description="Статус обработки", examples=["accepted"])
+    message: str = Field(..., description="Человекочитаемое сообщение", examples=["Обращение принято"])
+    name: str = Field(..., description="Имя из запроса")
+    phone: str = Field(..., description="Нормализованный телефон")
+    email: str = Field(..., description="Email из запроса")
+    comment: str = Field(..., description="Комментарий из запроса")
     email_sent: bool = Field(..., description="True, если оба письма успешно отправлены")
     ai_available: bool = Field(..., description="True, если успешна хотя бы одна AI-функция")
     ai_analysis: AIAnalysisResult | None = Field(

@@ -2,30 +2,69 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RequestClassification(BaseModel):
     """Результат классификации типа обращения"""
 
-    category: Literal["job", "collaboration", "question", "other"]
-    category_label: str
+    category: Literal["job", "collaboration", "question", "other"] = Field(
+        ...,
+        description="Код категории обращения",
+        examples=["job"],
+    )
+    category_label: str = Field(
+        ...,
+        description="Человекочитаемая метка категории",
+        examples=["Вакансия / работа"],
+    )
 
 
 class SentimentAnalysis(BaseModel):
     """Результат анализа тональности"""
 
-    sentiment: Literal["positive", "neutral", "negative"]
-    sentiment_score: float = Field(..., ge=-1.0, le=1.0)
+    sentiment: Literal["positive", "neutral", "negative"] = Field(
+        ...,
+        description="Тональность обращения",
+        examples=["positive"],
+    )
+    sentiment_score: float = Field(
+        ...,
+        ge=-1.0,
+        le=1.0,
+        description="Оценка тональности от -1 (негатив) до 1 (позитив)",
+        examples=[0.82],
+    )
 
 
 class AIAnalysisResult(BaseModel):
     """Частичный или полный AI-разбор для API-ответа (только успешные поля)"""
 
-    category: str | None = None
-    category_label: str | None = None
-    sentiment: str | None = None
-    sentiment_score: float | None = None
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "category": "job",
+                    "category_label": "Вакансия / работа",
+                    "sentiment": "positive",
+                    "sentiment_score": 0.82,
+                }
+            ]
+        }
+    )
+
+    category: str | None = Field(default=None, description="Код категории", examples=["job"])
+    category_label: str | None = Field(
+        default=None,
+        description="Метка категории",
+        examples=["Вакансия / работа"],
+    )
+    sentiment: str | None = Field(default=None, description="Тональность", examples=["positive"])
+    sentiment_score: float | None = Field(
+        default=None,
+        description="Оценка тональности [-1; 1]",
+        examples=[0.82],
+    )
 
 
 class AIEnrichment(BaseModel):

@@ -9,9 +9,15 @@ from app.schemas.health import HealthResponse
 router = APIRouter(tags=["health"])
 
 
-@router.get("/health", response_model=HealthResponse)
+@router.get(
+    "/health",
+    response_model=HealthResponse,
+    summary="Проверка работоспособности",
+    description="Liveness-проверка: сервис запущен и отвечает.",
+    responses={200: {"description": "Сервис доступен"}},
+)
 async def health(settings: Settings = Depends(settings_dep)) -> HealthResponse:
-    """Возвращает статус работоспособности сервиса."""
+    """Возвращает статус работоспособности сервиса"""
     return HealthResponse(
         status="ok",
         service=settings.app_name,

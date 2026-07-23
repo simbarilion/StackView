@@ -18,6 +18,36 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 setup_logging(settings)
 
+OPENAPI_TAGS = [
+    {
+        "name": "health",
+        "description": "Проверка работоспособности сервиса.",
+    },
+    {
+        "name": "contact",
+        "description": (
+            "Форма обратной связи: валидация, rate limit, AI-обогащение, отправка email и сохранение в PostgreSQL."
+        ),
+    },
+    {
+        "name": "metrics",
+        "description": "Агрегированная статистика сохранённых обращений из БД.",
+    },
+]
+
+API_DESCRIPTION = """
+Backend для формы обратной связи на лендинге разработчика.
+
+**Основные сценарии**
+- `POST /api/contact` — принять обращение, обогатить через OpenAI, отправить письма, сохранить в БД
+- `GET /api/metrics` — счётчики и группировки по категории / тональности
+- `GET /api/health` — healthcheck
+
+**Ограничения**
+- Rate limit по IP (файл `data/rate_limit.json`, настройки `RATE_LIMIT_*`)
+- При сбое SMTP или БД — HTTP 502; сбой AI не блокирует приём (флаг `ai_available`)
+"""
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,9 +66,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="StackView API",
-    description="""""",
+    description=API_DESCRIPTION,
     version="1.0.0",
-    openapi_tags=[],
+    openapi_tags=OPENAPI_TAGS,
     openapi_url="/api/openapi.json",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
@@ -52,9 +82,9 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 app.add_middleware(RequestLoggingMiddleware)
 
