@@ -1,12 +1,12 @@
 """Тесты file-backed rate limiting для POST /api/contact"""
 
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.dependencies import get_ai_service, get_rate_limit_service
+from app.api.dependencies import get_ai_service, get_contact_repository, get_rate_limit_service
 from app.core.config import get_settings
 from app.main import app
 from app.repositories.rate_limit import RateLimitRepository
@@ -25,12 +25,16 @@ def rate_limit_client(tmp_path: Path):
     )
     ai = AsyncMock()
     ai.enrich = AsyncMock(return_value=AIEnrichment(ai_available=False))
+    repo = AsyncMock()
+    repo.create = AsyncMock(return_value=MagicMock(id=1))
     app.dependency_overrides[get_rate_limit_service] = lambda: service
     app.dependency_overrides[get_ai_service] = lambda: ai
+    app.dependency_overrides[get_contact_repository] = lambda: repo
     client = TestClient(app)
     yield client
     app.dependency_overrides.pop(get_rate_limit_service, None)
     app.dependency_overrides.pop(get_ai_service, None)
+    app.dependency_overrides.pop(get_contact_repository, None)
 
 
 def test_rate_limit_allows_within_window(

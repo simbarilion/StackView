@@ -62,7 +62,13 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
+        """Асинхронный URL для SQLAlchemy + asyncpg"""
         return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+
+    @property
+    def database_url_sync(self) -> str:
+        """Синхронный URL для Alembic (psycopg2)"""
+        return f"postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

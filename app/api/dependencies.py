@@ -3,8 +3,11 @@
 from pathlib import Path
 
 from fastapi import Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
+from app.db.dependencies import get_session
+from app.repositories.contact import ContactRepository
 from app.repositories.rate_limit import RateLimitRepository
 from app.services.ai import AIService
 from app.services.contact import ContactService
@@ -27,12 +30,20 @@ def get_ai_service(settings: Settings = Depends(settings_dep)) -> AIService:
     return AIService(settings)
 
 
+def get_contact_repository(
+    session: AsyncSession = Depends(get_session),
+) -> ContactRepository:
+    """Возвращает репозиторий обращений"""
+    return ContactRepository(session)
+
+
 def get_contact_service(
     email_service: EmailService = Depends(get_email_service),
     ai_service: AIService = Depends(get_ai_service),
+    contact_repository: ContactRepository = Depends(get_contact_repository),
 ) -> ContactService:
     """Возвращает оркестратор обращений ContactService"""
-    return ContactService(email_service, ai_service)
+    return ContactService(email_service, ai_service, contact_repository)
 
 
 def get_rate_limit_service(settings: Settings = Depends(settings_dep)) -> RateLimitService:
@@ -49,6 +60,6 @@ def enforce_contact_rate_limit(
     request: Request,
     rate_limit_service: RateLimitService = Depends(get_rate_limit_service),
 ) -> None:
-    """Проверяет лимит для IP клиента до бизнес-логики contact."""
+    """Проверяет лимит для IP клиента до бизнес-логики contact"""
     client_ip = request.client.host if request.client else "unknown"
     rate_limit_service.ensure_allowed(client_ip)

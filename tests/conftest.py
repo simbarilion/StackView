@@ -2,12 +2,17 @@
 
 from collections.abc import Iterator
 from pathlib import Path
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.dependencies import get_ai_service, get_email_service, get_rate_limit_service
+from app.api.dependencies import (
+    get_ai_service,
+    get_contact_repository,
+    get_email_service,
+    get_rate_limit_service,
+)
 from app.core.config import Settings, clear_settings_cache, get_settings
 from app.core.exceptions import ExternalServiceError
 from app.main import app
@@ -184,8 +189,17 @@ def mock_ai_unavailable() -> AsyncMock:
 
 
 @pytest.fixture
-def client(tmp_path: Path) -> Iterator[TestClient]:
-    """TestClient с изолированным rate limit и отключённым AI"""
+def mock_contact_repository() -> AsyncMock:
+    """Подмена репозитория обращений: create всегда успешен"""
+    repo = AsyncMock()
+    repo.create = AsyncMock(return_value=MagicMock(id=1))
+    app.dependency_overrides[get_contact_repository] = lambda: repo
+    return repo
+
+
+@pytest.fixture
+def client(tmp_path: Path, mock_contact_repository: AsyncMock) -> Iterator[TestClient]:
+    """TestClient с изолированным rate limit, моком AI и репозитория"""
     storage = tmp_path / "rate_limit.json"
     rate_limit = RateLimitService(
         repository=RateLimitRepository(storage),
@@ -202,3 +216,4 @@ def client(tmp_path: Path) -> Iterator[TestClient]:
     app.dependency_overrides.pop(get_rate_limit_service, None)
     app.dependency_overrides.pop(get_email_service, None)
     app.dependency_overrides.pop(get_ai_service, None)
+    app.dependency_overrides.pop(get_contact_repository, None)
