@@ -1,0 +1,67 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Dashboard → New → Blueprint → указать этот репозиторий.
+# После создания сервиса добавьте секреты (SMTP, Groq) в Environment.
+
+databases:
+  - name: stackview-db
+    plan: free
+    databaseName: stackview
+    user: stackview
+
+services:
+  - type: web
+    name: stackview-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_NAME
+        value: StackView
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stackview-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_DIR
+        value: logs
+      - key: DATA_DIR
+        value: data
+      - key: RATE_LIMIT_REQUESTS
+        value: "5"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"
+      - key: AI_ENABLED
+        value: "true"
+      - key: OPENAI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: OPENAI_MODEL
+        value: llama-3.3-70b-versatile
+      - key: AI_TIMEOUT_SECONDS
+        value: "15"
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_USE_TLS
+        sync: false
+      - key: SMTP_USE_SSL
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_TO_OWNER
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
