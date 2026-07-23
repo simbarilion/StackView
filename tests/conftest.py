@@ -19,6 +19,7 @@ from app.main import app
 from app.repositories.rate_limit import RateLimitRepository
 from app.schemas.ai import AIAnalysisResult, AIEnrichment
 from app.schemas.contact import ContactRequest
+from app.schemas.metrics import MetricsResponse
 from app.services.ai import AIService
 from app.services.email import EmailService
 from app.services.rate_limit import RateLimitService
@@ -190,9 +191,18 @@ def mock_ai_unavailable() -> AsyncMock:
 
 @pytest.fixture
 def mock_contact_repository() -> AsyncMock:
-    """Подмена репозитория обращений: create всегда успешен"""
+    """Подмена репозитория обращений: create/get_metrics всегда успешны"""
     repo = AsyncMock()
     repo.create = AsyncMock(return_value=MagicMock(id=1))
+    repo.get_metrics = AsyncMock(
+        return_value=MetricsResponse(
+            total_submissions=0,
+            email_sent=0,
+            ai_available=0,
+            by_category={},
+            by_sentiment={},
+        )
+    )
     app.dependency_overrides[get_contact_repository] = lambda: repo
     return repo
 
