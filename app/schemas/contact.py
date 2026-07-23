@@ -5,6 +5,8 @@ from html import unescape
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from app.schemas.ai import AIAnalysisResult
+
 _TAG_RE = re.compile(r"<[^>]+>")
 _PHONE_DIGITS_RE = re.compile(r"\D+")
 
@@ -67,3 +69,12 @@ class ContactResponse(BaseModel):
     email: str
     comment: str
     email_sent: bool = Field(..., description="True, если оба письма успешно отправлены")
+    ai_available: bool = Field(..., description="True, если успешна хотя бы одна AI-функция")
+    ai_analysis: AIAnalysisResult | None = Field(
+        default=None,
+        description="Частичный или полный AI-разбор (только успешные поля)",
+    )
+    suggested_reply: str | None = Field(
+        default=None,
+        description="Черновик ответа, сгенерированный OpenAI",
+    )

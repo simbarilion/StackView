@@ -6,6 +6,7 @@ from fastapi import Depends, Request
 
 from app.core.config import Settings, get_settings
 from app.repositories.rate_limit import RateLimitRepository
+from app.services.ai import AIService
 from app.services.contact import ContactService
 from app.services.email import EmailService
 from app.services.rate_limit import RateLimitService
@@ -21,11 +22,17 @@ def get_email_service(settings: Settings = Depends(settings_dep)) -> EmailServic
     return EmailService(settings)
 
 
+def get_ai_service(settings: Settings = Depends(settings_dep)) -> AIService:
+    """Возвращает сервис AI-анализа обращений"""
+    return AIService(settings)
+
+
 def get_contact_service(
     email_service: EmailService = Depends(get_email_service),
+    ai_service: AIService = Depends(get_ai_service),
 ) -> ContactService:
     """Возвращает оркестратор обращений ContactService"""
-    return ContactService(email_service)
+    return ContactService(email_service, ai_service)
 
 
 def get_rate_limit_service(settings: Settings = Depends(settings_dep)) -> RateLimitService:
@@ -42,6 +49,6 @@ def enforce_contact_rate_limit(
     request: Request,
     rate_limit_service: RateLimitService = Depends(get_rate_limit_service),
 ) -> None:
-    """Проверяет лимит для IP клиента до бизнес-логики contact"""
+    """Проверяет лимит для IP клиента до бизнес-логики contact."""
     client_ip = request.client.host if request.client else "unknown"
     rate_limit_service.ensure_allowed(client_ip)
