@@ -7,12 +7,14 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.dependencies import get_email_service, get_rate_limit_service
+from app.api.dependencies import get_ai_service, get_email_service, get_rate_limit_service
 from app.core.config import Settings, clear_settings_cache, get_settings
 from app.core.exceptions import ExternalServiceError
 from app.main import app
 from app.repositories.rate_limit import RateLimitRepository
+from app.schemas.ai import AIAnalysisResult, AIEnrichment
 from app.schemas.contact import ContactRequest
+from app.services.ai import AIService
 from app.services.email import EmailService
 from app.services.rate_limit import RateLimitService
 
@@ -102,8 +104,40 @@ def configured_email_service(configured_email_settings: Settings) -> EmailServic
 
 
 @pytest.fixture
+def configured_ai_settings() -> Settings:
+    """Настройки с включённым AI и тестовым API-ключом"""
+    clear_settings_cache()
+    return get_settings().model_copy(
+        update={
+            "ai_enabled": True,
+            "openai_api_key": "sk-test-key",
+            "openai_model": "gpt-4o-mini",
+            "ai_timeout_seconds": 5.0,
+        }
+    )
+
+
+@pytest.fixture
+def disabled_ai_settings() -> Settings:
+    """Настройки с отключённым AI / без ключа"""
+    clear_settings_cache()
+    return get_settings().model_copy(
+        update={
+            "ai_enabled": True,
+            "openai_api_key": None,
+        }
+    )
+
+
+@pytest.fixture
+def configured_ai_service(configured_ai_settings: Settings) -> AIService:
+    """AIService с ключом"""
+    return AIService(configured_ai_settings)
+
+
+@pytest.fixture
 def mock_email_ok() -> AsyncMock:
-    """Подмена email-сервиса: отправка всегда успешна."""
+    """Подмена email-сервиса: отправка всегда успешна"""
     service = AsyncMock()
     service.send_contact_emails.return_value = True
     app.dependency_overrides[get_email_service] = lambda: service
@@ -112,7 +146,7 @@ def mock_email_ok() -> AsyncMock:
 
 @pytest.fixture
 def mock_email_fail() -> AsyncMock:
-    """Подмена email-сервиса: отправка всегда падает с 502."""
+    """Подмена email-сервиса: отправка всегда падает с 502"""
     service = AsyncMock()
     service.send_contact_emails.side_effect = ExternalServiceError(
         "Failed to send contact emails",
@@ -123,16 +157,48 @@ def mock_email_fail() -> AsyncMock:
 
 
 @pytest.fixture
+def mock_ai_ok() -> AsyncMock:
+    """Подмена AI: enrich всегда успешен"""
+    service = AsyncMock()
+    service.enrich.return_value = AIEnrichment(
+        ai_available=True,
+        ai_analysis=AIAnalysisResult(
+            category="collaboration",
+            category_label="Сотрудничество",
+            sentiment="positive",
+            sentiment_score=0.8,
+        ),
+        suggested_reply="Здравствуйте! Спасибо за обращение.",
+    )
+    app.dependency_overrides[get_ai_service] = lambda: service
+    return service
+
+
+@pytest.fixture
+def mock_ai_unavailable() -> AsyncMock:
+    """Подмена AI: enrich без доступного AI"""
+    service = AsyncMock()
+    service.enrich.return_value = AIEnrichment(ai_available=False)
+    app.dependency_overrides[get_ai_service] = lambda: service
+    return service
+
+
+@pytest.fixture
 def client(tmp_path: Path) -> Iterator[TestClient]:
-    """TestClient с изолированным rate limit"""
+    """TestClient с изолированным rate limit и отключённым AI"""
     storage = tmp_path / "rate_limit.json"
-    service = RateLimitService(
+    rate_limit = RateLimitService(
         repository=RateLimitRepository(storage),
         limit=1000,
         window_seconds=60,
     )
-    app.dependency_overrides[get_rate_limit_service] = lambda: service
+    ai = AsyncMock()
+    ai.enrich = AsyncMock(return_value=AIEnrichment(ai_available=False))
+
+    app.dependency_overrides[get_rate_limit_service] = lambda: rate_limit
+    app.dependency_overrides[get_ai_service] = lambda: ai
     test_client = TestClient(app)
     yield test_client
     app.dependency_overrides.pop(get_rate_limit_service, None)
     app.dependency_overrides.pop(get_email_service, None)
+    app.dependency_overrides.pop(get_ai_service, None)
