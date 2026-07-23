@@ -1,4 +1,4 @@
-"""Тесты file-backed rate limiting для POST /api/contact."""
+"""Тесты file-backed rate limiting для POST /api/contact"""
 
 from pathlib import Path
 
@@ -10,13 +10,6 @@ from app.core.config import get_settings
 from app.main import app
 from app.repositories.rate_limit import RateLimitRepository
 from app.services.rate_limit import RateLimitService
-
-VALID_PAYLOAD = {
-    "name": "Иван Иванов",
-    "phone": "+79991234567",
-    "email": "ivan@example.com",
-    "comment": "Хочу обсудить проект",
-}
 
 
 @pytest.fixture
@@ -34,19 +27,25 @@ def rate_limit_client(tmp_path: Path):
     app.dependency_overrides.pop(get_rate_limit_service, None)
 
 
-def test_rate_limit_allows_within_window(rate_limit_client: TestClient) -> None:
+def test_rate_limit_allows_within_window(
+    rate_limit_client: TestClient,
+    valid_payload: dict[str, str],
+) -> None:
     """Первые n запросов в окне проходят успешно"""
     for _ in range(2):
-        response = rate_limit_client.post("/api/contact", json=VALID_PAYLOAD)
+        response = rate_limit_client.post("/api/contact", json=valid_payload)
         assert response.status_code == 201
 
 
-def test_rate_limit_blocks_excess_requests(rate_limit_client: TestClient) -> None:
+def test_rate_limit_blocks_excess_requests(
+    rate_limit_client: TestClient,
+    valid_payload: dict[str, str],
+) -> None:
     """Запрос сверх лимита возвращает 429 rate_limit_exceeded"""
-    assert rate_limit_client.post("/api/contact", json=VALID_PAYLOAD).status_code == 201
-    assert rate_limit_client.post("/api/contact", json=VALID_PAYLOAD).status_code == 201
+    assert rate_limit_client.post("/api/contact", json=valid_payload).status_code == 201
+    assert rate_limit_client.post("/api/contact", json=valid_payload).status_code == 201
 
-    response = rate_limit_client.post("/api/contact", json=VALID_PAYLOAD)
+    response = rate_limit_client.post("/api/contact", json=valid_payload)
     assert response.status_code == 429
     body = response.json()
     assert body["code"] == "rate_limit_exceeded"
