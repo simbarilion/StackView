@@ -34,12 +34,30 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content=payload.model_dump())
 
 
+def _json_safe_validation_errors(errors: list[Any]) -> list[dict[str, Any]]:
+    """
+    Преобразует список ошибок валидации Pydantic в JSON‑совместимый формат.
+    Нормализует (преобразует в текствое сообщение) несериализуемое значение (например, объект ValueError)
+    в поле контекста ошибки 'ctx', чтобы избежать ошибки сериализации при возврате ответа 422.
+    """
+    safe: list[dict[str, Any]] = []
+    for error in errors:
+        item = cast(dict[str, Any], dict(error))
+        ctx = item.get("ctx")
+        if isinstance(ctx, dict):
+            item["ctx"] = {
+                key: (str(value) if isinstance(value, BaseException) else value) for key, value in ctx.items()
+            }
+        safe.append(item)
+    return safe
+
+
 async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """Обрабатывает ошибки валидации входных данных (HTTP 422)"""
     payload = ErrorResponse(
         code="validation_error",
         message="Request validation failed",
-        details=exc.errors(),
+        details=_json_safe_validation_errors(list(exc.errors())),
         request_id=_request_id(request),
     )
     return JSONResponse(status_code=422, content=payload.model_dump())

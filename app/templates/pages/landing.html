@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ app_name }} — Backend developer</title>
+  <meta name="description" content="Nadezhda Popova — backend developer. FastAPI, PostgreSQL, AI-интеграции. Связаться через форму." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/landing.css" />
+</head>
+<body>
+  <div class="page-glow" aria-hidden="true"></div>
+  <div class="page-beam" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="/">@simbarilion</a>
+    <span class="status-pill">Open to work · 2026</span>
+  </header>
+
+  <main>
+    <section class="hero" id="top">
+      <p class="eyebrow">Backend · API · AI tooling</p>
+      <h1 class="hero-title">
+        Building reliable
+        <span class="text-accent">APIs</span>
+        that ship
+      </h1>
+      <p class="hero-lead">
+        Nadezhda Popova — backend developer. FastAPI, PostgreSQL, email-пайплайны
+        и аккуратные интеграции с OpenAI для продуктовых форм и сервисов.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#contact">Связаться</a>
+        <a class="btn btn-ghost" href="https://github.com/simbarilion" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </section>
+
+    <section class="section focus" id="focus">
+      <div class="section-head">
+        <h2>Фокус</h2>
+        <p>Небольшой стек, понятные контракты, проверяемое поведение.</p>
+      </div>
+      <ul class="focus-list">
+        <li>
+          <strong>API first</strong>
+          <span>Валидация, rate limit, единый формат ошибок, OpenAPI как источник правды.</span>
+        </li>
+        <li>
+          <strong>Данные</strong>
+          <span>PostgreSQL, миграции Alembic, метрики по обращениям без лишней инфраструктуры.</span>
+        </li>
+        <li>
+          <strong>AI как слой</strong>
+          <span>Классификация и черновик ответа обогащают заявку, но не ломают приём формы.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="section stack" id="stack">
+      <div class="section-head">
+        <h2>Стек</h2>
+        <p>То, чем собираю демо вроде StackView.</p>
+      </div>
+      <ul class="tag-row" aria-label="Технологии">
+        <li class="tag">Python</li>
+        <li class="tag">FastAPI</li>
+        <li class="tag">PostgreSQL</li>
+        <li class="tag">SQLAlchemy</li>
+        <li class="tag">Alembic</li>
+        <li class="tag">OpenAI</li>
+        <li class="tag">pytest</li>
+      </ul>
+    </section>
+
+    <section class="section contact" id="contact">
+      <div class="section-head">
+        <h2>Связаться</h2>
+        <p>Опишите задачу — отвечу по email.</p>
+      </div>
+
+      <form class="contact-form" id="contact-form" novalidate>
+        <div class="field">
+          <label for="name">Имя</label>
+          <input id="name" name="name" type="text" autocomplete="name" required minlength="2" maxlength="100" placeholder="Анна Ковалёва" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="phone">Телефон</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" required placeholder="+79991234567" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="anna@example.com" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="comment">Сообщение</label>
+          <textarea id="comment" name="comment" rows="5" required maxlength="2000" placeholder="Коротко о задаче, сроках и формате связи"></textarea>
+        </div>
+
+        <div class="form-footer">
+          <button class="btn btn-primary" type="submit" id="submit-btn">Отправить</button>
+          <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>{{ app_name }}</span>
+    <a href="/api/docs">API docs</a>
+  </footer>
+
+  <script src="/static/js/contact.js" defer></script>
+</body>
+</html>

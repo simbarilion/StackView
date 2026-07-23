@@ -6,13 +6,17 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
+from app.api.routers import pages
 from app.core.config import get_settings
 from app.core.exception_handlers import register_exception_handlers
 from app.core.logging import setup_logging
 from app.core.middleware import RequestLoggingMiddleware
 from app.db.session import get_engine, init_db
+
+_STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -90,4 +94,6 @@ app.add_middleware(RequestLoggingMiddleware)
 
 register_exception_handlers(app)
 
+app.include_router(pages.router)
 app.include_router(api_router)
+app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")

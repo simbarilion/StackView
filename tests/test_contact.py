@@ -37,6 +37,20 @@ def test_contact_invalid_phone(client: TestClient, valid_payload: dict[str, str]
     payload = {**valid_payload, "phone": "123"}
     response = client.post("/api/contact", json=payload)
     assert response.status_code == 422
+    body = response.json()
+    assert body["code"] == "validation_error"
+
+
+def test_contact_phone_too_many_digits(client: TestClient, valid_payload: dict[str, str]) -> None:
+    """Слишком длинный телефон даёт сериализуемый 422 с полем phone"""
+    payload = {**valid_payload, "phone": "+799912345678901234"}
+    response = client.post("/api/contact", json=payload)
+    assert response.status_code == 422
+    body = response.json()
+    assert body["code"] == "validation_error"
+    assert isinstance(body["details"], list)
+    locs = [item.get("loc") for item in body["details"]]
+    assert any("phone" in loc for loc in locs if isinstance(loc, list))
 
 
 def test_contact_strips_html_from_comment(client: TestClient, valid_payload: dict[str, str]) -> None:
