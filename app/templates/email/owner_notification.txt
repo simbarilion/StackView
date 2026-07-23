@@ -1,0 +1,14 @@
+Поступило новое обращение с формы обратной связи.
+
+Имя: {{ name }}
+Телефон: {{ phone }}
+Email: {{ email }}
+Дата: {{ submitted_at }}
+
+Комментарий:
+{{ comment }}
+{% if ai_analysis %}
+
+--- AI-анализ ---
+{{ ai_analysis }}
+{% endif %}

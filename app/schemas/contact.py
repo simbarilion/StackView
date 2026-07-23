@@ -66,3 +66,4 @@ class ContactResponse(BaseModel):
     phone: str
     email: str
     comment: str
+    email_sent: bool = Field(..., description="True, если оба письма успешно отправлены")

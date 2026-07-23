@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from app.core.config import Settings, get_settings
 from app.repositories.rate_limit import RateLimitRepository
 from app.services.contact import ContactService
+from app.services.email import EmailService
 from app.services.rate_limit import RateLimitService
 
 
@@ -15,9 +16,16 @@ def settings_dep() -> Settings:
     return get_settings()
 
 
-def get_contact_service() -> ContactService:
+def get_email_service(settings: Settings = Depends(settings_dep)) -> EmailService:
+    """Возвращает сервис отправки email"""
+    return EmailService(settings)
+
+
+def get_contact_service(
+    email_service: EmailService = Depends(get_email_service),
+) -> ContactService:
     """Возвращает оркестратор обращений ContactService"""
-    return ContactService()
+    return ContactService(email_service)
 
 
 def get_rate_limit_service(settings: Settings = Depends(settings_dep)) -> RateLimitService:

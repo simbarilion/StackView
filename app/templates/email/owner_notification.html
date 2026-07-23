@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Новое обращение</title>
+</head>
+<body>
+  <h2>Новое обращение — {{ app_name }}</h2>
+  <p>Поступило новое обращение с формы обратной связи.</p>
+  <ul>
+    <li><strong>Имя:</strong> {{ name }}</li>
+    <li><strong>Телефон:</strong> {{ phone }}</li>
+    <li><strong>Email:</strong> {{ email }}</li>
+    <li><strong>Дата:</strong> {{ submitted_at }}</li>
+  </ul>
+  <h3>Комментарий</h3>
+  <p>{{ comment }}</p>
+  {% if ai_analysis %}
+  <h3>AI-анализ</h3>
+  <pre>{{ ai_analysis }}</pre>
+  {% endif %}
+</body>
+</html>
