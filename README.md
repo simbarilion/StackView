@@ -21,7 +21,7 @@ StackView — сервис обратной связи для персональ
 - **Swagger** — https://stackview-api.onrender.com/api/docs
 - **Health** — https://stackview-api.onrender.com/api/health
 - **Metrics** — https://stackview-api.onrender.com/api/metrics
-- **API** — отправить `POST /api/health` и `POST /api/metrics` из Swagger или с формы
+- **API** — отправить `POST /api/health` и `POST /api/metrics` из Swagger
 
 **AI и БД:** участвуют в `POST /api/contact`. Если запрос вернул `201` и в ответе есть `ai_available` / `ai_analysis` / `suggested_reply` — AI отработал (или сообщил, что недоступен). Если после успешного запроса выросло значение в `/api/metrics` — запись попала в PostgreSQL. Метрики и поля ответа как раз показывают, что сохранение сработало.
 
